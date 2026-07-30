@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.safetensors
+.DS_Store
+Thumbs.db
+leaderboard_results/*.json
