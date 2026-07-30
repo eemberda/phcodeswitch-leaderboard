@@ -1,0 +1,38 @@
+{
+  "_description": "Benchmark dataset definitions for the Cebu-Davao code-switched ASR leaderboard",
+  "dataset_repo": "https://github.com/eemberda/phcodeswitch-dataset",
+
+  "dataset_root": "dataset/data/audio",
+  "transcript_file": "dataset/data/transcripts.txt",
+  "metadata_file": "dataset/data/metadata.json",
+
+  "speaker_mapping_file": "dataset/data/speaker_mapping.json",
+
+  "benchmarks": {
+    "all": {
+      "description": "Complete evaluation on the entire dataset",
+      "speakers": null,
+      "max_samples": null
+    },
+    "core_speakers": {
+      "description": "Speakers with 50+ recorded samples (reliable benchmark)",
+      "speakers": ["S001", "S002", "S003", "S004", "S005", "S006", "S007", "S008", "S009", "S010"],
+      "max_samples": null
+    },
+    "by_speaker": {
+      "description": "Per-speaker evaluation subsets (auto-generated from speaker metadata)"
+    },
+    "code_switched": {
+      "description": "Utterances containing both Cebuano and English tokens",
+      "speakers": null,
+      "language_filter": "code_switch",
+      "max_samples": null
+    },
+    "cebuano_only": {
+      "description": "Utterances primarily in Cebuano with minimal English",
+      "speakers": null,
+      "language_filter": "cebuano",
+      "max_samples": null
+    }
+  }
+}

@@ -1,45 +1,53 @@
 # PhCodeSwitch ASR Leaderboard
 
-A standardized benchmarking platform for evaluating ASR models on Cebuano-English code-switched speech, built on the [PhCodeSwitch Cebu-Davao dataset](https://github.com/eemberda/phcodeswitch-dataset).
+A standardized benchmarking platform for evaluating ASR models on Cebuano-English code-switched speech.
 
-Inspired by the [Open ASR Leaderboard](https://huggingface.co/spaces/open-asr-leaderboard/leaderboard) and [SWE-bench](https://www.swebench.com/).
+**Live leaderboard:** https://eemberda.github.io/phcodeswitch-leaderboard/
 
-## Setup
+## Installation
 
 ```bash
-# Clone with dataset submodule
+pip install phcodeswitch-leaderboard
+```
+
+Or from source:
+
+```bash
 git clone --recurse-submodules https://github.com/eemberda/phcodeswitch-leaderboard.git
 cd phcodeswitch-leaderboard
-
-# Prepare audio files (required for evaluation)
-# Point to the original audio_data directory
-python dataset/scripts/prepare_dataset.py /path/to/original/audio_data
+pip install -e .
 ```
 
 ## Quick Start
 
 ```bash
+# Create default config files
+phcodeswitch-leaderboard --init
+
+# Clone the dataset
+git clone https://github.com/eemberda/phcodeswitch-dataset.git dataset
+
+# Prepare audio files (required for evaluation)
+python dataset/scripts/prepare_dataset.py /path/to/original/audio_data
+
 # List available models and benchmarks
-python run_leaderboard.py --list
+phcodeswitch-leaderboard --list
 
-# Evaluate a specific model on the core speakers benchmark
-python run_leaderboard.py --models whisper_small --benchmark core_speakers
-
-# Evaluate the fine-tuned model
-python run_leaderboard.py --models phcodeswitch_small_ceb --benchmark core_speakers
+# Evaluate a model on the core speakers benchmark
+phcodeswitch-leaderboard --models whisper_small --benchmark core_speakers
 
 # View the leaderboard in terminal
-python run_leaderboard.py --summary
+phcodeswitch-leaderboard --summary
 
 # Generate interactive HTML leaderboard report
-python run_leaderboard.py --report
+phcodeswitch-leaderboard --report
 ```
 
 Open `leaderboard_results/index.html` in a browser to view the interactive leaderboard.
 
 ## Dataset
 
-The dataset is maintained as a [separate repository](https://github.com/eemberda/phcodeswitch-dataset) with anonymized speaker IDs (`S001`–`S123`). Audio files (~2.3 GB) are not stored in git; run the `prepare_dataset.py` script to copy and rename them from the original project.
+The dataset is maintained as a [separate repository](https://github.com/eemberda/phcodeswitch-dataset) with anonymized speaker IDs (`S001`–`S123`). Audio files (~2.3 GB) are not stored in git; run `prepare_dataset.py` to copy and rename them from the original project.
 
 ## Benchmarks
 
@@ -55,13 +63,11 @@ The dataset is maintained as a [separate repository](https://github.com/eemberda
 
 **Baselines:** `whisper_tiny`, `whisper_base`, `whisper_small`, `whisper_medium`, `whisper_large_v3` (and English-only variants)
 
-**Fine-tuned:** `phcodeswitch_small_ceb` - Whisper Small fine-tuned on 4,692 Cebuano-English utterances (20.86% WER)
-
-To add your own model, edit `models_config.json`.
+**Fine-tuned:** Add your own model to `models_config.json` with its Hugging Face ID or local path.
 
 ## How It Works
 
-1. Loads audio and transcripts from the dataset submodule
+1. Loads audio and transcripts from the dataset
 2. Runs each model through every utterance in the benchmark
 3. Computes Word Error Rate (WER) and Character Error Rate (CER) using `jiwer`
 4. Stores results in `leaderboard_results/results.json`

@@ -6,3 +6,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 leaderboard_results/*.json
+dist/
+*.egg-info/
+build/

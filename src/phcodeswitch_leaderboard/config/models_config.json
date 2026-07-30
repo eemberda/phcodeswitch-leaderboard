@@ -1,0 +1,72 @@
+{
+  "_description": "Model registry for the Cebu-Davao code-switched ASR leaderboard",
+
+  "baselines": {
+    "whisper_tiny_en": {
+      "name": "Whisper Tiny (English)",
+      "model_id": "openai/whisper-tiny.en",
+      "type": "pretrained",
+      "language": "en",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_base_en": {
+      "name": "Whisper Base (English)",
+      "model_id": "openai/whisper-base.en",
+      "type": "pretrained",
+      "language": "en",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_small_en": {
+      "name": "Whisper Small (English)",
+      "model_id": "openai/whisper-small.en",
+      "type": "pretrained",
+      "language": "en",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_tiny": {
+      "name": "Whisper Tiny (Multilingual)",
+      "model_id": "openai/whisper-tiny",
+      "type": "pretrained",
+      "language": "tl",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_base": {
+      "name": "Whisper Base (Multilingual)",
+      "model_id": "openai/whisper-base",
+      "type": "pretrained",
+      "language": "tl",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_small": {
+      "name": "Whisper Small (Multilingual)",
+      "model_id": "openai/whisper-small",
+      "type": "pretrained",
+      "language": "tl",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_medium": {
+      "name": "Whisper Medium (Multilingual)",
+      "model_id": "openai/whisper-medium",
+      "type": "pretrained",
+      "language": "tl",
+      "task": "transcribe",
+      "num_beams": 5
+    },
+    "whisper_large_v3": {
+      "name": "Whisper Large v3",
+      "model_id": "openai/whisper-large-v3",
+      "type": "pretrained",
+      "language": "tl",
+      "task": "transcribe",
+      "num_beams": 5
+    }
+  },
+
+  "fine_tuned": {}
+}

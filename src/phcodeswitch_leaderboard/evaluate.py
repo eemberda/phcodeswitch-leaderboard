@@ -11,8 +11,8 @@ from transformers import (
     WhisperProcessor,
 )
 
-from src.metrics import compute_detailed_metrics
-from src.dataset import filter_records
+from phcodeswitch_leaderboard.metrics import compute_detailed_metrics
+from phcodeswitch_leaderboard.dataset import filter_records
 
 WHISPER_SR = 16_000
 
