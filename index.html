@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhCodeSwitch ASR Leaderboard</title>
+<style>
+  
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  background: #0d1117; color: #c9d1d9; line-height: 1.6;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+header { margin-bottom: 32px; }
+header h1 {
+  font-size: 2rem; font-weight: 700;
+  background: linear-gradient(135deg, #58a6ff, #bc8cff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.subtitle { color: #8b949e; font-size: 1.1rem; margin-top: 4px; }
+.timestamp { color: #484f58; font-size: 0.85rem; margin-top: 8px; }
+.filters {
+  display: flex; gap: 16px; align-items: center;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.filters label { color: #8b949e; font-size: 0.9rem; }
+.filters select {
+  background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+  padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;
+}
+.filters select:focus { outline: none; border-color: #58a6ff; }
+table {
+  width: 100%; border-collapse: collapse;
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+  overflow: hidden;
+}
+th {
+  background: #21262d; padding: 12px 16px; text-align: left;
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;
+  color: #8b949e; border-bottom: 1px solid #30363d; white-space: nowrap;
+}
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: #58a6ff; }
+td {
+  padding: 12px 16px; border-bottom: 1px solid #21262d;
+  font-size: 0.9rem;
+}
+tr:hover td { background: #1c2128; }
+tr:last-child td { border-bottom: none; }
+.rank {
+  display: inline-block; width: 28px; height: 28px; line-height: 28px;
+  text-align: center; border-radius: 50%; font-weight: 700; font-size: 0.8rem;
+}
+.rank-1 { background: #ffd700; color: #0d1117; }
+.rank-2 { background: #c0c0c0; color: #0d1117; }
+.rank-3 { background: #cd7f32; color: #0d1117; }
+.rank-default { background: #21262d; color: #8b949e; }
+.model-name { font-weight: 600; color: #58a6ff; }
+.model-tag {
+  display: inline-block; font-size: 0.7rem; padding: 2px 8px;
+  border-radius: 12px; margin-left: 8px; font-weight: 500;
+}
+.tag-finetuned { background: #1b4332; color: #52b788; }
+.tag-pretrained { background: #1b2838; color: #58a6ff; }
+.wer { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.wer-good { color: #3fb950; }
+.wer-mid { color: #d29922; }
+.wer-bad { color: #f85149; }
+.badge {
+  display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap;
+}
+.badge-label {
+  background: #21262d; padding: 6px 14px; border-radius: 20px;
+  font-size: 0.8rem; color: #8b949e;
+}
+.badge-label strong { color: #c9d1d9; }
+footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #21262d; color: #484f58; font-size: 0.85rem; }
+footer a { color: #58a6ff; text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+footer code { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>PhCodeSwitch ASR Leaderboard</h1>
+    <p class="subtitle">Standardized benchmark for Cebuano-English code-switched ASR models</p>
+    <p class="timestamp">Generated: 2026-07-31 06:12:25 | Entries: 5</p>
+  </header>
+
+  <div class="filters">
+    <label>Benchmark:
+      <select id="benchmark-select" onchange="filterTable()">
+        <option value="code_switched">code_switched</option>
+<option value="core_speakers">core_speakers</option>
+      </select>
+    </label>
+    <label>Sort by:
+      <select id="sort-select" onchange="filterTable()">
+        <option value="corpus_wer">WER (asc)</option>
+        <option value="corpus_cer">CER (asc)</option>
+        <option value="mean_case_wer">Mean WER (asc)</option>
+        <option value="mean_case_cer">Mean CER (asc)</option>
+        <option value="num_samples">Samples (desc)</option>
+        <option value="avg_time_per_sample_s">Speed (asc)</option>
+      </select>
+    </label>
+  </div>
+
+  <table id="leaderboard-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Model</th>
+        <th>Benchmark</th>
+        <th onclick="sortBy('corpus_wer')" class="sortable">WER &#x25B4;&#x25BE;</th>
+        <th onclick="sortBy('corpus_cer')" class="sortable">CER &#x25B4;&#x25BE;</th>
+        <th onclick="sortBy('mean_case_wer')" class="sortable">Mean WER &#x25B4;&#x25BE;</th>
+        <th onclick="sortBy('mean_case_cer')" class="sortable">Mean CER &#x25B4;&#x25BE;</th>
+        <th onclick="sortBy('num_samples')" class="sortable">Samples</th>
+        <th onclick="sortBy('avg_time_per_sample_s')" class="sortable">Sec/Sample</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+  </table>
+
+  <div class="badge">
+    <span class="badge-label">Leaderboard v1.0.0</span>
+    <span class="badge-label">Best WER: <strong>20.86% (PhCodeSwitch Whisper Small (Cebu), core_speakers)</strong></span>
+    <span class="badge-label">Models: <strong>3</strong></span>
+  </div>
+
+  <footer>
+    <p>Built on the <a href="https://github.com/ericjohnemberda/phcodeswitch-ceb-dvo">PhCodeSwitch Cebu-Davao dataset</a>.</p>
+    <p>To submit a model, run: <code>python run_leaderboard.py --model your_model_id</code></p>
+  </footer>
+</div>
+
+<script>
+
+const data = {
+  "entries": [
+    {
+      "model_key": "phcodeswitch_small_ceb",
+      "model_name": "PhCodeSwitch Whisper Small (Cebu)",
+      "benchmark": "core_speakers",
+      "benchmark_description": "Speakers with 50+ recorded samples",
+      "timestamp": "2026-07-31T06:00:00",
+      "metrics": {
+        "corpus_wer": 20.86,
+        "corpus_cer": 8.42,
+        "mean_case_wer": 22.15,
+        "mean_case_cer": 9.31,
+        "num_samples": 4682,
+        "total_time_s": 2874.5,
+        "avg_time_per_sample_s": 0.61
+      }
+    },
+    {
+      "model_key": "whisper_small",
+      "model_name": "Whisper Small (Multilingual)",
+      "benchmark": "core_speakers",
+      "benchmark_description": "Speakers with 50+ recorded samples",
+      "timestamp": "2026-07-31T06:00:00",
+      "metrics": {
+        "corpus_wer": 35.42,
+        "corpus_cer": 15.87,
+        "mean_case_wer": 37.01,
+        "mean_case_cer": 16.53,
+        "num_samples": 4682,
+        "total_time_s": 2450.3,
+        "avg_time_per_sample_s": 0.52
+      }
+    },
+    {
+      "model_key": "whisper_tiny",
+      "model_name": "Whisper Tiny (Multilingual)",
+      "benchmark": "core_speakers",
+      "benchmark_description": "Speakers with 50+ recorded samples",
+      "timestamp": "2026-07-31T06:00:00",
+      "metrics": {
+        "corpus_wer": 48.73,
+        "corpus_cer": 22.14,
+        "mean_case_wer": 50.22,
+        "mean_case_cer": 23.87,
+        "num_samples": 4682,
+        "total_time_s": 890.2,
+        "avg_time_per_sample_s": 0.19
+      }
+    },
+    {
+      "model_key": "phcodeswitch_small_ceb",
+      "model_name": "PhCodeSwitch Whisper Small (Cebu)",
+      "benchmark": "code_switched",
+      "benchmark_description": "Code-switched utterances",
+      "timestamp": "2026-07-31T06:00:00",
+      "metrics": {
+        "corpus_wer": 25.14,
+        "corpus_cer": 10.33,
+        "mean_case_wer": 26.78,
+        "mean_case_cer": 11.05,
+        "num_samples": 635,
+        "total_time_s": 412.5,
+        "avg_time_per_sample_s": 0.65
+      }
+    },
+    {
+      "model_key": "whisper_small",
+      "model_name": "Whisper Small (Multilingual)",
+      "benchmark": "code_switched",
+      "benchmark_description": "Code-switched utterances",
+      "timestamp": "2026-07-31T06:00:00",
+      "metrics": {
+        "corpus_wer": 42.18,
+        "corpus_cer": 18.45,
+        "mean_case_wer": 44.02,
+        "mean_case_cer": 19.33,
+        "num_samples": 635,
+        "total_time_s": 375.2,
+        "avg_time_per_sample_s": 0.59
+      }
+    }
+  ],
+  "fine_tuned_models": []
+};
+
+function getMetric(row, key) {
+  return row.metrics && row.metrics[key] !== undefined ? row.metrics[key] : null;
+}
+
+function getModelType(modelKey) {
+  const ft = data.fine_tuned_models || [];
+  return ft.includes(modelKey) ? 'fine-tuned' : 'pretrained';
+}
+
+function render() {
+  const bm = document.getElementById('benchmark-select').value;
+  const sortKey = document.getElementById('sort-select').value;
+
+  let filtered = data.entries.filter(e => e.benchmark === bm);
+  const desc = sortKey === 'num_samples';
+  filtered.sort((a, b) => {
+    const va = getMetric(a, sortKey) ?? 0;
+    const vb = getMetric(b, sortKey) ?? 0;
+    return desc ? vb - va : va - vb;
+  });
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+
+  filtered.forEach((entry, idx) => {
+    const rank = idx + 1;
+    const m = entry.metrics;
+    const werClass = m.corpus_wer < 15 ? 'wer-good' : m.corpus_wer < 30 ? 'wer-mid' : 'wer-bad';
+    const modelType = getModelType(entry.model_key);
+    const tagClass = modelType === 'fine-tuned' ? 'tag-finetuned' : 'tag-pretrained';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="rank rank-${rank <= 3 ? rank : 'default'}">${rank}</span></td>
+      <td>
+        <span class="model-name">${entry.model_name}</span>
+        <span class="model-tag ${tagClass}">${modelType}</span>
+      </td>
+      <td>${entry.benchmark}</td>
+      <td class="wer ${werClass}">${m.corpus_wer.toFixed(2)}%</td>
+      <td class="wer">${m.corpus_cer.toFixed(2)}%</td>
+      <td class="wer">${m.mean_case_wer.toFixed(2)}%</td>
+      <td class="wer">${m.mean_case_cer.toFixed(2)}%</td>
+      <td>${m.num_samples}</td>
+      <td>${m.avg_time_per_sample_s.toFixed(2)}s</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterTable() { render(); }
+document.addEventListener('DOMContentLoaded', render);
+
+</script>
+</body>
+</html>
