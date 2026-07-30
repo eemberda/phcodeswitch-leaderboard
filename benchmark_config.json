@@ -1,8 +1,12 @@
 {
   "_description": "Benchmark dataset definitions for the Cebu-Davao code-switched ASR leaderboard",
-  "dataset_root": "C:\\Users\\Eric\\Documents\\Personal\\Projects\\phcodeswitch-ceb-dvo\\audio_data",
-  "transcript_file": "C:\\Users\\Eric\\Documents\\Personal\\Projects\\phcodeswitch-ceb-dvo\\audio_data\\transcripts.txt",
-  "metadata_file": "C:\\Users\\Eric\\Documents\\Personal\\Projects\\phcodeswitch-ceb-dvo\\audio_data\\metadata.json",
+  "dataset_repo": "https://github.com/eemberda/phcodeswitch-dataset",
+
+  "dataset_root": "dataset/data/audio",
+  "transcript_file": "dataset/data/transcripts.txt",
+  "metadata_file": "dataset/data/metadata.json",
+
+  "speaker_mapping_file": "dataset/data/speaker_mapping.json",
 
   "benchmarks": {
     "all": {
@@ -13,11 +17,8 @@
     "core_speakers": {
       "description": "Speakers with 50+ recorded samples (reliable benchmark)",
       "speakers": [
-        "MarloRomero", "EdgardoRojas", "ChristianAngeloRamirez",
-        "EdwinRojo", "JamesTubiano", "henz", "haide", "aileen",
-        "Justine", "RheyPantilo", "kayas", "mcansancio",
-        "macarimbang", "Lolo", "Presores", "Delacerna", "Casul",
-        "gabito", "Reina", "Solomon", "agrazamendez", "Eric"
+        "S001", "S002", "S003", "S004", "S005",
+        "S006", "S007", "S008", "S009", "S010"
       ],
       "max_samples": null
     },

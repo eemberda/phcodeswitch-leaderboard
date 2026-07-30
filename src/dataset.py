@@ -89,9 +89,13 @@ def extract_speaker(filename: str) -> str:
     return parts[0]
 
 
-def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str) -> List[Dict]:
+def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str,
+                  require_audio: bool = True) -> List[Dict]:
     records = []
-    seen = set()
+    seen: set[str] = set()
+
+    def make_key(fname: str) -> str:
+        return Path(fname).stem.lower()
 
     if Path(transcript_file).is_file():
         with open(transcript_file, encoding="utf-8-sig") as f:
@@ -102,21 +106,36 @@ def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str) -
                 stem, text = line.split("|", 1)
                 stem = stem.strip()
                 text = text.strip()
-                for ext in ["", ".wav", ".mp3"]:
-                    candidate = stem + ext if ext else stem
-                    full = Path(dataset_root) / candidate
-                    if full.is_file():
-                        key = str(full)
-                        if key not in seen:
-                            seen.add(key)
-                            records.append({
-                                "path": str(full),
-                                "filename": full.name,
-                                "sentence": text,
-                                "speaker": extract_speaker(full.name),
-                                "language_mix": detect_language_mix(text),
-                            })
-                        break
+                if require_audio:
+                    for ext in ["", ".wav", ".mp3"]:
+                        candidate = stem + ext if ext else stem
+                        full = Path(dataset_root) / candidate
+                        if full.is_file():
+                            key = make_key(full.name)
+                            if key not in seen:
+                                seen.add(key)
+                                records.append({
+                                    "path": str(full),
+                                    "filename": full.name,
+                                    "sentence": text,
+                                    "speaker": extract_speaker(full.name),
+                                    "language_mix": detect_language_mix(text),
+                                })
+                            break
+                else:
+                    key = make_key(stem)
+                    if key not in seen:
+                        seen.add(key)
+                        candidate = Path(dataset_root) / (stem + ".wav")
+                        if not candidate.is_file():
+                            candidate = Path(dataset_root) / (stem + ".mp3")
+                        records.append({
+                            "path": str(candidate) if candidate.is_file() else "",
+                            "filename": stem + ".wav",
+                            "sentence": text,
+                            "speaker": extract_speaker(stem),
+                            "language_mix": detect_language_mix(text),
+                        })
 
     if Path(metadata_file).is_file():
         with open(metadata_file, encoding="utf-8-sig") as f:
@@ -126,17 +145,19 @@ def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str) -
             fname = entry.get("filename", "")
             text = entry.get("text", "")
             full = Path(dataset_root) / fname
-            if full.is_file():
-                key = str(full)
-                if key not in seen:
-                    seen.add(key)
-                    records.append({
-                        "path": str(full),
-                        "filename": full.name,
-                        "sentence": text,
-                        "speaker": extract_speaker(full.name),
-                        "language_mix": detect_language_mix(text),
-                    })
+            key = make_key(fname)
+            if key in seen:
+                continue
+            if require_audio and not full.is_file():
+                continue
+            seen.add(key)
+            records.append({
+                "path": str(full) if full.is_file() else "",
+                "filename": fname,
+                "sentence": text,
+                "speaker": extract_speaker(Path(fname).stem),
+                "language_mix": detect_language_mix(text),
+            })
 
     return records
 
@@ -155,7 +176,7 @@ def filter_records(records: List[Dict], speakers: Optional[List[str]] = None,
     return result
 
 
-def load_benchmark(benchmark_name: str, config: Dict) -> Tuple[str, List[Dict]]:
+def load_benchmark(benchmark_name: str, config: Dict, require_audio: bool = True) -> Tuple[str, List[Dict]]:
     benchmarks = config["benchmarks"]
     if benchmark_name not in benchmarks:
         raise KeyError(f"Unknown benchmark: {benchmark_name}. Available: {list(benchmarks.keys())}")
@@ -164,6 +185,7 @@ def load_benchmark(benchmark_name: str, config: Dict) -> Tuple[str, List[Dict]]:
         config["transcript_file"],
         config["metadata_file"],
         config["dataset_root"],
+        require_audio=require_audio,
     )
     if benchmark_name == "all":
         return bm["description"], records
@@ -191,9 +213,10 @@ def compute_dataset_stats(records: List[Dict]) -> Dict:
     speakers = {}
     lang_mix = {"cebuano": 0, "english": 0, "code_switch": 0, "unknown": 0}
     for r in records:
-        spk = r["speaker"]
+        spk = r.get("speaker", "unknown")
         speakers[spk] = speakers.get(spk, 0) + 1
-        lang_mix[r["language_mix"]] = lang_mix.get(r["language_mix"], 0) + 1
+        lm = r.get("language_mix", "unknown")
+        lang_mix[lm] = lang_mix.get(lm, 0) + 1
     return {
         "total_samples": len(records),
         "unique_speakers": len(speakers),

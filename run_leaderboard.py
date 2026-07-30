@@ -62,6 +62,7 @@ def list_available(registry: ModelRegistry, config: dict):
         config["transcript_file"],
         config["metadata_file"],
         config["dataset_root"],
+        require_audio=False,
     )
     stats = compute_dataset_stats(records)
     print(f"Total samples:        {stats['total_samples']}")
@@ -75,13 +76,14 @@ def list_available(registry: ModelRegistry, config: dict):
         print(f"  {spk:<25} {count}")
 
 
-def get_benchmark_records(benchmark_name: str, config: dict) -> tuple:
+def get_benchmark_records(benchmark_name: str, config: dict, require_audio: bool = True) -> tuple:
     benchmarks = config["benchmarks"]
     bm = benchmarks[benchmark_name]
     records = load_manifest(
         config["transcript_file"],
         config["metadata_file"],
         config["dataset_root"],
+        require_audio=require_audio,
     )
     if benchmark_name == "all":
         return bm["description"], records

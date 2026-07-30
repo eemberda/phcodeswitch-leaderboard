@@ -71,7 +71,7 @@
   "fine_tuned": {
     "phcodeswitch_small_ceb": {
       "name": "PhCodeSwitch Whisper Small (Cebu)",
-      "model_id": "C:\\Users\\Eric\\Documents\\Personal\\Projects\\phcodeswitch-ceb-dvo\\asr_model_final",
+      "model_id": "../phcodeswitch-ceb-dvo/asr_model_final",
       "type": "local",
       "language": "tl",
       "task": "transcribe",
