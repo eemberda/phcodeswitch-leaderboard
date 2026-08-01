@@ -2,11 +2,16 @@
   "_description": "Benchmark dataset definitions for the Cebu-Davao code-switched ASR leaderboard",
   "dataset_repo": "https://github.com/eemberda/phcodeswitch-dataset",
 
+  "dataset_mode": "features",
   "dataset_root": "dataset/data/audio",
-  "transcript_file": "dataset/data/transcripts.txt",
-  "metadata_file": "dataset/data/metadata.json",
+  "feature_root": "../phcodeswitch-dataset/data/audio_features",
+  "feature_config_file": "../phcodeswitch-dataset/data/feature_config.json",
+  "feature_cache_dir": "data/feature_cache",
 
-  "speaker_mapping_file": "dataset/data/speaker_mapping.json",
+  "transcript_file": "../phcodeswitch-dataset/data/transcripts.txt",
+  "metadata_file": "../phcodeswitch-dataset/data/metadata.json",
+
+  "speaker_mapping_file": "../phcodeswitch-dataset/data/speaker_mapping.json",
 
   "benchmarks": {
     "all": {

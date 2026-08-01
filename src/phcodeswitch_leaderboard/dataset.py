@@ -90,12 +90,71 @@ def extract_speaker(filename: str) -> str:
 
 
 def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str,
-                  require_audio: bool = True) -> List[Dict]:
+                  require_audio: bool = True,
+                  feature_root: Optional[str] = None) -> List[Dict]:
+    """Load manifest records for a benchmark.
+
+    Two input modes are supported:
+
+    * ``feature_root`` is set (features mode): every record points at a
+      pre-computed log-mel feature file ``{stem}.npz`` (the abstracted audio
+      shipped with the dataset repo). Records carry a ``features_path`` key
+      and an empty ``path`` key.
+    * otherwise (audio mode): every record points at a raw audio file
+      (``.wav`` / ``.mp3``) via the ``path`` key.
+
+    In both modes records also carry ``sentence``, ``speaker`` and
+    ``language_mix`` fields used for scoring and filtering.
+    """
     records = []
     seen: set[str] = set()
+    features_mode = feature_root is not None
 
     def make_key(fname: str) -> str:
         return Path(fname).stem.lower()
+
+    def find_input(stem: str):
+        if features_mode:
+            npz = Path(feature_root) / f"{stem}.npz"
+            return npz if npz.is_file() else None
+        for ext in ["", ".wav", ".mp3"]:
+            candidate = stem + ext if ext else stem
+            full = Path(dataset_root) / candidate
+            if full.is_file():
+                return full
+        return None
+
+    def make_record(stem: str, text: str):
+        key = make_key(stem)
+        if key in seen:
+            return None
+        if features_mode:
+            npz = Path(feature_root) / f"{stem}.npz"
+            if require_audio and not npz.is_file():
+                return None
+            seen.add(key)
+            return {
+                "path": "",
+                "features_path": str(npz) if npz.is_file() else "",
+                "stem": stem,
+                "filename": f"{stem}.npz",
+                "sentence": text,
+                "speaker": extract_speaker(stem),
+                "language_mix": detect_language_mix(text),
+            }
+        full = find_input(stem)
+        if require_audio and full is None:
+            return None
+        if full is None:
+            full = Path(dataset_root) / f"{stem}.wav"
+        seen.add(key)
+        return {
+            "path": str(full) if full.is_file() else "",
+            "filename": full.name if full.is_file() else f"{stem}.wav",
+            "sentence": text,
+            "speaker": extract_speaker(full.name if full.is_file() else stem),
+            "language_mix": detect_language_mix(text),
+        }
 
     if Path(transcript_file).is_file():
         with open(transcript_file, encoding="utf-8-sig") as f:
@@ -104,38 +163,9 @@ def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str,
                 if not line or "|" not in line:
                     continue
                 stem, text = line.split("|", 1)
-                stem = stem.strip()
-                text = text.strip()
-                if require_audio:
-                    for ext in ["", ".wav", ".mp3"]:
-                        candidate = stem + ext if ext else stem
-                        full = Path(dataset_root) / candidate
-                        if full.is_file():
-                            key = make_key(full.name)
-                            if key not in seen:
-                                seen.add(key)
-                                records.append({
-                                    "path": str(full),
-                                    "filename": full.name,
-                                    "sentence": text,
-                                    "speaker": extract_speaker(full.name),
-                                    "language_mix": detect_language_mix(text),
-                                })
-                            break
-                else:
-                    key = make_key(stem)
-                    if key not in seen:
-                        seen.add(key)
-                        candidate = Path(dataset_root) / (stem + ".wav")
-                        if not candidate.is_file():
-                            candidate = Path(dataset_root) / (stem + ".mp3")
-                        records.append({
-                            "path": str(candidate) if candidate.is_file() else "",
-                            "filename": stem + ".wav",
-                            "sentence": text,
-                            "speaker": extract_speaker(stem),
-                            "language_mix": detect_language_mix(text),
-                        })
+                rec = make_record(stem.strip(), text.strip())
+                if rec is not None:
+                    records.append(rec)
 
     if Path(metadata_file).is_file():
         with open(metadata_file, encoding="utf-8-sig") as f:
@@ -144,20 +174,9 @@ def load_manifest(transcript_file: str, metadata_file: str, dataset_root: str,
         for entry in entries:
             fname = entry.get("filename", "")
             text = entry.get("text", "")
-            full = Path(dataset_root) / fname
-            key = make_key(fname)
-            if key in seen:
-                continue
-            if require_audio and not full.is_file():
-                continue
-            seen.add(key)
-            records.append({
-                "path": str(full) if full.is_file() else "",
-                "filename": fname,
-                "sentence": text,
-                "speaker": extract_speaker(Path(fname).stem),
-                "language_mix": detect_language_mix(text),
-            })
+            rec = make_record(Path(fname).stem, text)
+            if rec is not None:
+                records.append(rec)
 
     return records
 
@@ -186,6 +205,7 @@ def load_benchmark(benchmark_name: str, config: Dict, require_audio: bool = True
         config["metadata_file"],
         config["dataset_root"],
         require_audio=require_audio,
+        feature_root=config.get("feature_root"),
     )
     if benchmark_name == "all":
         return bm["description"], records
