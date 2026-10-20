@@ -10,15 +10,20 @@ Usage:
   phcodeswitch-leaderboard --report
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from phcodeswitch_leaderboard.dataset import load_manifest, filter_records, get_speaker_subsets, compute_dataset_stats
-from phcodeswitch_leaderboard.evaluate import ModelRegistry, ASREvaluator, load_feature_config
 from phcodeswitch_leaderboard.leaderboard import Leaderboard
 from phcodeswitch_leaderboard.visualize import generate_html
+
+if TYPE_CHECKING:
+    from phcodeswitch_leaderboard.evaluate import ModelRegistry
 
 
 def load_json(path: str) -> dict:
@@ -121,6 +126,8 @@ def run_evaluation(model_key: str, model_info: dict,
                    benchmark_name: str, benchmark_records: list,
                    leaderboard: Leaderboard, benchmark_desc: str,
                    feature_config: dict = None, cache_dir: str = None) -> dict:
+    from phcodeswitch_leaderboard.evaluate import ASREvaluator
+
     print_header(f"Evaluating {model_info['name']} on [{benchmark_name}]")
     evaluator = ASREvaluator(model_key, model_info, feature_config=feature_config,
                              cache_dir=cache_dir)
@@ -182,6 +189,8 @@ def main():
         print("  ../phcodeswitch-dataset/data/audio_features")
         print("(git clone https://github.com/eemberda/phcodeswitch-dataset.git ../phcodeswitch-dataset)")
         return
+
+    from phcodeswitch_leaderboard.evaluate import ModelRegistry, load_feature_config
 
     config_dir = Path(args.config_dir)
     config_path = config_dir / "benchmark_config.json"
